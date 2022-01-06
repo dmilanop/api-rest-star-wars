@@ -2,13 +2,14 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 import os
+import requests
 from flask import Flask, request, jsonify, url_for
 from flask_migrate import Migrate
 from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User
+from models import db, User, Favorite
 #from models import Person
 
 app = Flask(__name__)
@@ -25,6 +26,11 @@ setup_admin(app)
 def handle_invalid_usage(error):
     return jsonify(error.to_dict()), error.status_code
 
+def swapi_to_localhost(swapi_url):
+    return swapi_url.replace("https://www.swapi.tech/api/", "https://3000-gold-canidae-6ovungq4.ws-us25.gitpod.io/")
+
+
+
 # generate sitemap with all your endpoints
 @app.route('/')
 def sitemap():
@@ -38,6 +44,45 @@ def handle_hello():
     }
 
     return jsonify(response_body), 200
+
+
+
+
+
+# esta ruta trae todos los planetas
+@app.route('/planets', methods=['GET'])
+def handle_planet():
+    # consultar la api de Star Wars
+    response = requests.get('https://www.swapi.tech/api/planets?page=1&limit=1000')
+    response = response.json()
+
+    results = response['results']
+
+    for result in results:
+        
+        result.update(url= swapi_to_localhost(result["url"]))
+
+    return jsonify(results), 200
+
+
+@app.route('/favorites/<string:nature>', methods=['POST'])
+def handle_favorites(nature):
+    uid = request.json["uid"]
+    name = request.json["name"]
+    user_id = request.json["user_id"]
+    new_favorite = Favorite(
+        user_id = user_id,
+        name = name,
+        url = f"https://www.swapi.tech/api/{nature}/{uid}" 
+    )
+    db.session.add(new_favorite)
+    try:
+        db.session.commit()
+        return jsonify(new_favorite.serialize()), 201
+    except Exception as error:
+        db.session.rollback()
+        return jsonify(error.args), 500
+
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
