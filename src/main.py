@@ -46,6 +46,18 @@ def handle_hello():
     return jsonify(response_body), 200
 
 
+@app.route('/people', methods=['GET'])
+def handle_people():
+    response = requests.get('https://www.swapi.tech/api/people?page=1&limit=1000')
+    response = response.json()
+
+    results = response['results']
+
+    for result in results:
+
+        result.update(url= swapi_to_localhost(result["url"]))
+
+    return jsonify(results), 200
 
 
 
@@ -60,6 +72,20 @@ def handle_planet():
 
     for result in results:
         
+        result.update(url= swapi_to_localhost(result["url"]))
+
+    return jsonify(results), 200
+
+
+@app.route('/vehicles', methods=['GET'])
+def handle_vehicles():
+    response = requests.get('https://www.swapi.tech/api/vehicles?page=1&limit=1000')
+    response = response.json()
+
+    results = response['results']
+
+    for result in results:
+
         result.update(url= swapi_to_localhost(result["url"]))
 
     return jsonify(results), 200
