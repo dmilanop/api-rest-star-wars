@@ -10,12 +10,26 @@ class User(db.Model):
     password = db.Column(db.String(100), unique=False, nullable=False)
     favorites = db.relationship("Favorite", backref="user", uselist=True)
 
+    @classmethod
+    def create(cls, new_user):
+        new_user = cls(**new_user)
+        db.session.add(new_user)
+        try:
+            db.session.commit()
+            return new_user
+        except Exception as error:
+            db.session.rollback()
+            print(error.args)
+            return None
+
+
     def serialize(self):
         return {
             "id": self.id,
             "email": self.email,
             # do not serialize the password, its a security breach
         }
+    
 
 
 class Favorite(db.Model):
@@ -29,54 +43,19 @@ class Favorite(db.Model):
         name = "unique_favorite_user"
     ),)
 
-#     # people_id = db.Column(db.Integer, db.ForeignKey('people.id'))
-#     # planet_id = db.Column(db.Integer, db.ForeignKey('planet.id'))
-#     # vehicle_id = db.Column(db.Integer, db.ForeignKey('vehicle.id'))
-
     def serialize(self):
         return {
             "name": self.name,
             "id": self.id,
         }
 
-
-# class People(db.Model):
-#     name = db.Column(db.String(80), nullable=False)
-#     id = db.Column(db.Integer, primary_key=True)
-#     age = db.Column(db.Integer, unique=True)
-#     favorites = db.relationship("Favorites")
-
-#     def serialize(self):
-#         return {
-#             "name": self.name,
-#             "id": self.id,
-#             "age": self.age
-#         }
+    def delete(self):
+        db.session.delete(self)
+        try:
+            db.session.commit()
+            return True
+        except Exception as error: 
+            db.session.rollback()
+            return False
 
 
-# class Planet(db.Model):
-#     name = db.Column(db.String(80), nullable=False)
-#     id = db.Column(db.Integer, primary_key=True)
-#     population = db.Column(db.Integer, nullable=False)
-#     favorites = db.relationship("Favorites")
-
-#     def serialize(self):
-#         return {
-#             "name": self.name,
-#             "id": self.id,
-#             "population": self.population
-#         }
-
-
-# class Vehicle(db.Model):
-#     name = db.Column(db.String(80), nullable=False )
-#     id = db.Column(db.Integer, primary_key=True)
-#     speed = db.Column(db.Integer, nullable=False)
-#     favorites = db.relationship("Favorites")
-
-#     def serialize(self):
-#         return {
-#             "name": self.name,
-#             "id": self.id,
-#             "speed": self.speed
-#         }
