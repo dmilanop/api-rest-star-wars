@@ -30,7 +30,7 @@ def handle_invalid_usage(error):
     return jsonify(error.to_dict()), error.status_code
 
 def swapi_to_localhost(swapi_url):
-    return swapi_url.replace("https://www.swapi.tech/api/", "https://3000-gold-canidae-6ovungq4.ws-us25.gitpod.io/")
+    return swapi_url.replace("https://www.swapi.tech/api/", "https://3000-harlequin-elk-rf33ch02.ws-us25.gitpod.io/")
 
 
 
@@ -92,6 +92,36 @@ def handle_vehicles():
         result.update(url= swapi_to_localhost(result["url"]))
 
     return jsonify(results), 200
+
+
+@app.route('/people/<int:id>', methods=['GET'])
+def handle_details_people(id):
+    response = requests.get(f"https://www.swapi.tech/api/people/{id}")
+    response = response.json()
+
+    results = response['result']
+
+    return jsonify(results)
+
+
+@app.route('/planets/<int:id>', methods=['GET'])
+def handle_details_planets(id):
+    response = requests.get(f"https://www.swapi.tech/api/planets/{id}")
+    response = response.json()
+
+    results = response['result']
+
+    return jsonify(results)
+
+
+@app.route('/vehicles/<int:id>', methods=['GET'])
+def handle_details_vehicles(id):
+    response = requests.get(f"https://www.swapi.tech/api/vehicles/{id}")
+    response = response.json()
+
+    results = response['result']
+
+    return jsonify(results)
 
 
 @app.route('/singup', methods=['POST'])
